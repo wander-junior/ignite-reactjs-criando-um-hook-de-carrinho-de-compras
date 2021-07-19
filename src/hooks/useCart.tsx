@@ -1,3 +1,4 @@
+import { error } from 'console';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
@@ -80,9 +81,13 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
-    } catch {
-      // TODO
+      const productIndex = cart.findIndex(product => product.id === productId);
+      if (productIndex === -1) throw 'Erro na remoção do produto'
+      const cartCopy = [...cart];
+      cartCopy.splice(productIndex, 1);
+      setCart(cartCopy);
+    } catch(error) {
+      toast.error(error)
     }
   };
 
