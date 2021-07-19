@@ -91,9 +91,17 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      // TODO
+      if (amount <= 0) return;
+      const stockIndex = stock.findIndex(product => product.id === productId);
+      if (amount > stock[stockIndex].amount) {
+        throw 'Quantidade solicitada fora de estoque';
+      }
+      const cartCopy = cart;
+      const productIndex = cartCopy.findIndex(product => product.id === productId);
+      cartCopy[productIndex].amount = amount;
+      setCart([...cartCopy]);
     } catch {
-      // TODO
+      toast.error('Quantidade solicitada fora de estoque');
     }
   };
 
