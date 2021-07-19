@@ -1,3 +1,4 @@
+import { error } from 'console';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
@@ -51,7 +52,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       // Get stock data
       const productStock = stock.find(product => product.id === productId);
       if (productStock && productStock.amount < 1) {
-        throw new Error ("Quantidade solicitada fora de estoque")
+        throw "Quantidade solicitada fora de estoque"
       }
 
       // Increment amount to existing product
@@ -60,7 +61,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       if (cartProductIndex !== -1) {
         const product = cartCopy[cartProductIndex];
         if (productStock && productStock.amount < product.amount + 1) {
-          throw new Error ("Quantidade solicitada fora de estoque")
+          throw "Quantidade solicitada fora de estoque"
         }
         product.amount++;
         setCart(cartCopy)
@@ -81,7 +82,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const removeProduct = (productId: number) => {
     try {
       const productIndex = cart.findIndex(product => product.id === productId);
-      if (productIndex === -1) throw new Error ('Erro na remoção do produto')
+      if (productIndex === -1) throw 'Erro na remoção do produto'
       const cartCopy = [...cart];
       cartCopy.splice(productIndex, 1);
       setCart(cartCopy);
@@ -98,7 +99,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       if (amount <= 0) return;
       const stockIndex = stock.findIndex(product => product.id === productId);
       if (amount > stock[stockIndex].amount) {
-        throw new Error('Quantidade solicitada fora de estoque');
+        throw 'Quantidade solicitada fora de estoque';
       }
       const cartCopy = cart;
       const productIndex = cartCopy.findIndex(product => product.id === productId);
