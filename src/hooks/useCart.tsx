@@ -32,15 +32,12 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     
     return [];
   });
-
-  useEffect(() => {
-    localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
-  }, [cart])
   
   const addProduct = async (productId: number) => {
     try {
       // Get stock data
       const {data: productStock} = await api.get<Stock>(`/stock/${productId}`);
+
       // Increment amount to existing product
       const cartCopy = [...cart];
       const cartProduct = cartCopy.find(product => product.id === productId);
@@ -50,7 +47,8 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
           return;
         }
         cartProduct.amount++;
-        setCart([...cartCopy])
+        setCart([...cartCopy]);
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(cartCopy))
         return;
       }
 
@@ -58,6 +56,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       const { data: product } = await api.get<Product>(`/products/${productId}`);
       cartCopy.push({...product, amount: 1})
       setCart([...cartCopy]);      
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cartCopy))
     } catch {
       toast.error('Erro na adição do produto');
     }
@@ -70,6 +69,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       const cartCopy = [...cart];
       cartCopy.splice(productIndex, 1);
       setCart([...cartCopy]);
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cartCopy))
     } catch(error) {
       toast.error(error)
     }
@@ -89,6 +89,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       const productIndex = cartCopy.findIndex(product => product.id === productId);
       cartCopy[productIndex].amount = amount;
       setCart([...cartCopy]);
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cartCopy))
     } catch {
       toast.error('Quantidade solicitada fora de estoque');
     }
