@@ -59,7 +59,7 @@ const Cart = (): JSX.Element => {
         <tbody>
           {cartFormatted.map(product => {
             return (
-              <tr key={product.id}>
+              <tr key={product.id} data-testid="product">
                 <td>
                   <img src={product.image} alt={product.title} />
                 </td>
