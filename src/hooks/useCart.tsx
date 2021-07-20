@@ -1,4 +1,3 @@
-import { error } from 'console';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
@@ -33,15 +32,6 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     
     return [];
   });
-  const [stock, setStock] = useState<Stock[]>([]);
-
-  useEffect(() => {
-    async function loadStock() {
-      const { data } = await api.get('/stock');
-      setStock(data);
-    }
-    loadStock();
-  }, [])
 
   useEffect(() => {
     localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
@@ -50,32 +40,26 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const addProduct = async (productId: number) => {
     try {
       // Get stock data
-      const productStock = stock.find(product => product.id === productId);
-      if (productStock && productStock.amount < 1) {
-        throw "Quantidade solicitada fora de estoque"
-      }
-
+      const {data: productStock} = await api.get<Stock>(`/stock/${productId}`);
       // Increment amount to existing product
       const cartCopy = [...cart];
-      const cartProductIndex = cart.findIndex(product => product.id === productId);
-      if (cartProductIndex !== -1) {
-        const product = cartCopy[cartProductIndex];
-        if (productStock && productStock.amount < product.amount + 1) {
-          throw "Quantidade solicitada fora de estoque"
+      const cartProduct = cartCopy.find(product => product.id === productId);
+      if (cartProduct) {
+        if (productStock.amount < cartProduct.amount + 1) {
+          toast.error("Quantidade solicitada fora de estoque");
+          return;
         }
-        product.amount++;
-        setCart(cartCopy)
+        cartProduct.amount++;
+        setCart([...cartCopy])
         return;
       }
 
       // Add new product to cart
-      const { data } = await api.get('/products');
-      const product = data.find((product: Product) => product.id === productId);
-      product.amount = 1;
-      setCart([...cart, product]);
-      
-    } catch(error) {
-      toast.error(error);
+      const { data: product } = await api.get<Product>(`/products/${productId}`);
+      cartCopy.push({...product, amount: 1})
+      setCart([...cartCopy]);      
+    } catch {
+      toast.error('Erro na adição do produto');
     }
   };
 
@@ -85,7 +69,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       if (productIndex === -1) throw 'Erro na remoção do produto'
       const cartCopy = [...cart];
       cartCopy.splice(productIndex, 1);
-      setCart(cartCopy);
+      setCart([...cartCopy]);
     } catch(error) {
       toast.error(error)
     }
@@ -97,11 +81,11 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   }: UpdateProductAmount) => {
     try {
       if (amount <= 0) return;
-      const stockIndex = stock.findIndex(product => product.id === productId);
-      if (amount > stock[stockIndex].amount) {
+      const {data: productStock} = await api.get<Stock>(`/stock/${productId}`)
+      if (amount > productStock.amount) {
         throw 'Quantidade solicitada fora de estoque';
       }
-      const cartCopy = cart;
+      const cartCopy = [...cart];
       const productIndex = cartCopy.findIndex(product => product.id === productId);
       cartCopy[productIndex].amount = amount;
       setCart([...cartCopy]);
